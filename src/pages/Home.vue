@@ -2,14 +2,16 @@
     <div class="wrap">
         <div class="container">
             <MainView />
+            <SubView />
         </div>
     </div>
 </template>
 
 <script>
 import MainView from '@/components/MainView.vue'
+import SubView from '@/components/SubView.vue'
 export default {
-  components: { MainView },}
+  components: { MainView, SubView },}
 </script>
 
 <style lang="scss" scoped>
@@ -20,6 +22,8 @@ export default {
     width: 100%;
     height: 100vh;
     font-size: 16px;
+
+    background-color: palevioletred;
 
     .container {
         @include center-sb;
