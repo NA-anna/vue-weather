@@ -47,6 +47,9 @@
           ]
         }
       ]
+    },
+    "globals": {
+      "kakao": false
     }
   },
   "browserslist": [
