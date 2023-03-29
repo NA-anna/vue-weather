@@ -2,8 +2,8 @@
     <div class="leftContainer">
         <div id="cityNameBox">
             <div class="cityName">
-                <p>San Francisco</p>
-                <p></p>
+                <p>{{ cityName }}</p>
+                <p>{{ currentTime }}</p>
             </div>
         </div>
         <div id="contentsBox">
@@ -21,7 +21,7 @@
                     <img src="@/assets/images/dust.png" alt="MainLogo"/>
                 </div>
                 <div class="weatherData">
-                    <div v-for="Temporary in TemporaryData" :key="Temporary.title" class="detailData">                                    
+                    <div v-for="Temporary in temporaryData" :key="Temporary.title" class="detailData">                                    
                             <p>{{ Temporary.title }}</p>
                             <p>{{ Temporary.value }}</p>
                     </div>
@@ -59,11 +59,25 @@
 </template>
     
 <script>
+import axios from 'axios';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko'); // global로 한국어 locale 사용
+
 export default {
+
     data() {
         return {
+            // 현재 시간을 나타내기 위한 Dayjs 플러그인 사용
+            currentTime: dayjs().format('YYYY. MM. DD. ddd'),
+
+            //상세데이터를 받아주는 데이터 할당
+            temp: [],
+            icons: [],
+            cityName: "",
+
             //임시데이터
-            TemporaryData: [
+            temporaryData: [
                 {
                     title: "습도",
                     value: "88%",
@@ -78,6 +92,23 @@ export default {
                 },
             ]
         }
+    },
+    created() {
+        // 초기데이터 선언을 위한 코드 작성
+        // https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid={API key}
+        const API_KEY = "f8ad3cf3aa1e0f2df6433c805e65ca58";
+        let initialLat = 37.5683;//context.state.position.lat;
+        let initialLon = 126.9778;//context.state.position.lon;
+
+        axios
+        .get(`https://api.openweathermap.org/data/2.5/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}&units=metric`)
+        .then(response => {
+            console.log(response)
+            this.cityName = response.data.timeZone
+        })
+        .catch(error => 
+            console.log(error)
+        )
     }
 };
 </script>
