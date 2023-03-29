@@ -9,21 +9,21 @@
         <div id="contentsBox">
             <div class="buttonBox">
                 <div class="buttonBackground">
-                    <button class="forecast">forecast</button>
+                    <button class="forecast">Forecast</button>
                     <button class="airquality">Air Quality</button>
                 </div>
             </div>
             <div class="weatherBox">
                 <div class="weatherDegree">
-                    <p>10&deg;</p>
+                    <p>{{ currentTemp }}&deg;</p>
                 </div>
                 <div class="weatherIcon">
                     <img src="@/assets/images/dust.png" alt="MainLogo"/>
                 </div>
                 <div class="weatherData">
-                    <div v-for="Temporary in temporaryData" :key="Temporary.title" class="detailData">                                    
-                            <p>{{ Temporary.title }}</p>
-                            <p>{{ Temporary.value }}</p>
+                    <div v-for="item in currentWeather" :key="item.title" class="detailData">                                    
+                            <p>{{ item.title }}</p>
+                            <p>{{ item.value }}</p>
                     </div>
                 </div>
             </div>            
@@ -34,16 +34,16 @@
                 <p>이번주 날씨 보기</p>
             </div>
             <div class="timelyWeatherBox">
-                <div class="timelyWeather">
+                <div class="timelyWeather" v-for="(temp, index) in arrayTemps" :key="index">
                     <div class="icon">
                         <img src="@/assets/images/dust.png" alt=""/>
                     </div>
                     <div class="data">
-                        <p class="time">2pm</p>
-                        <p class="currentDegree">32&deg;</p>
+                        <p class="time">{{ Unix_timestamp(temp.dt) }}</p>
+                        <p class="currentDegree">{{ Math.round(temp.temp) }}&deg;</p>
                         <div>
                             <img src="@/assets/images/drop.png" alt=""/>
-                            <p class="fall">15%</p>
+                            <p class="fall">{{ temp.humidity }}</p>
                         </div>
                     </div>
                 </div>
@@ -68,16 +68,17 @@ export default {
 
     data() {
         return {
+            //도시
+            cityName: "",
+
             // 현재 시간을 나타내기 위한 Dayjs 플러그인 사용
             currentTime: dayjs().format('YYYY. MM. DD. ddd'),
 
-            //상세데이터를 받아주는 데이터 할당
-            temp: [],
-            icons: [],
-            cityName: "",
+            // 현재 온도
+            currentTemp: "",
 
-            //임시데이터
-            temporaryData: [
+            // 현재 날씨
+            currentWeather: [
                 {
                     title: "습도",
                     value: "88%",
@@ -90,7 +91,11 @@ export default {
                     title: "체감온도",
                     value: "WS",
                 },
-            ]
+            ],
+
+            //상세데이터를 받아주는 데이터 할당
+            arrayTemps: [],
+            icons: [],
         }
     },
     created() {
@@ -104,11 +109,36 @@ export default {
         .get(`https://api.openweathermap.org/data/2.5/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}&units=metric`)
         .then(response => {
             console.log(response)
-            this.cityName = response.data.timeZone
+            let initialCityName = response.data.timezone
+            this.cityName = initialCityName.split("/")[1]
+
+            let initialCurrentWeatherData = response.data.current
+            this.currentTemp = Math.round(initialCurrentWeatherData.temp)
+            this.currentWeather[0].value = initialCurrentWeatherData.humidity + "%"
+            this.currentWeather[1].value = initialCurrentWeatherData.wind_speed + "m/s"
+            this.currentWeather[2].value = initialCurrentWeatherData.feels_like + "도"
+
+            // 시간대별 날씨 데이터 제어
+            this.arrayTemps = response.data.hourly
+
+            // 우리는 24시간 이내의 데이터만 활용할 것이기 때문에 for문을 활용한다
+            for(let i=0; i<24; i++) {
+                this.arrayTemps[i] = response.data.hourly[i]
+            }
+            console.log(this.arrayTemps)
+
         })
         .catch(error => 
             console.log(error)
         )
+    },
+    methods: {
+        //타임스탬프로 변환
+        Unix_timestamp(dt) {
+            let date = new Date(dt * 1000)
+            let hour = "0" + date.getHours();
+            return hour.substring(2) + "시"
+        }
     }
 };
 </script>
